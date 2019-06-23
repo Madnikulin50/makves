@@ -10,6 +10,7 @@ services:
   adminer:
     image: madnikulin50/makves:latest
     restart: always
+    pull: true
     environment:
       CONF: '"orm": {"host": "db", "pwd": "example", "user": "postgres", "dbname": "makves" } }'
     ports:
