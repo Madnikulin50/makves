@@ -11,6 +11,6 @@ services:
     image: madnikulin50/makves:latest
     restart: always
     environment:
-      CONF: "orm": {"host": "db", "pwd": "example", "user": "postgres", "dbname": "makves" } }
+      CONF: '"orm": {"host": "db", "pwd": "example", "user": "postgres", "dbname": "makves" } }'
     ports:
       - 8000:8000
