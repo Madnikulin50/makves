@@ -64,7 +64,7 @@
 
 #### Установка
 
-1. Установить программу из установщика [makves.msi](https://github.com/Madnikulin50/makves-mvp/blob/master/makves.msi "Переход по ссылке")
+1. Установить программу из установщика [makves.msi](https://github.com/Madnikulin50/makves/releases "Переход по ссылке")
 2. Создать в PostgreSQL пустую базу данных
 3. В конфигурационном файле изменить настройки подключения к базе данных PostgresSQL
 4. Зарегистрировать makves как сервис:
