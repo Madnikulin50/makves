@@ -6,10 +6,7 @@ param (
     [int]$hashlen = 1048576,
     [switch]$force = $false,
     [switch]$extruct = $false,
-    [string]$start = "",
-    [string]$solr = "",
-    [string]$elk = "",
-    [string]$elkAuth = "elastic:changeme"
+    [string]$start = ""
  )
  
 
@@ -17,11 +14,9 @@ param (
 
 $LogDate = get-date -f yyyyMMddhhmm 
 $outfile = "$($outfilename)_$LogDate.json"
-$solrUrl = "$($solr)/solr/files/update"
 
 Write-Host "base: " $folder
 Write-Host "outfile: " $outfile
-Write-Host "solrUrl: " $solrUrl
 
 if (Test-Path $outfile) 
 {
@@ -187,28 +182,8 @@ function inspectFile($cur) {
         }
         
         $cur | Add-Member -MemberType NoteProperty -Name ACL -Value $acl -Force
-        if ($solr -ne "") {
-            $JSON = $cur | ConvertTo-Json
-            $response = Invoke-WebRequest -Uri $solrUrl -Method Post -Body $JSON -ContentType "application/json"
-        } else {
-            if ($elk -ne "") {
-               
-                #$credPair = "$($username):$($password)" 
-                $credPair = $elkAuth 
-                $encodedCredentials = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($credPair))
-                $headers = @{ Authorization = "Basic $encodedCredentials" } 
-                
-                [string]$at = $cur.LastAccessTime.ToString("yyyy-MM-ddTHH:mm:ssZ")
-                Write-Host "send to elk : " $at
-                $cur | Add-Member -MemberType NoteProperty -Name FileTime -Value $at -Force
-                $JSON = $cur | ConvertTo-Json
-                Write-Host "send to elk : " $JSON
-                Invoke-RestMethod -Method Post -Uri "$elk" -ContentType "application/json" -Body $JSON  -ErrorAction Stop -Headers $headers -UseBasicParsing
-            }
-            else {
-                $cur | ConvertTo-Json | Out-File -FilePath $outfile -Encoding UTF8 -Append    
-            }
-        }
+
+        $cur | ConvertTo-Json | Out-File -FilePath $outfile -Encoding UTF8 -Append
 }
 
 function inspectFolder($f) {
