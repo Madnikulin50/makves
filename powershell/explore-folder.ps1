@@ -8,7 +8,7 @@ param (
     [switch]$extruct = $false,
     [string]$start = "",
     [string]$solr = "",
-    [string]$elk = ""
+    [string]$elk = "",
     [string]$elkAuth = "elastic:changeme"
  )
  
