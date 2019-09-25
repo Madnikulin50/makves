@@ -175,15 +175,20 @@ function inspectFile($cur) {
                     $cur | Add-Member -MemberType NoteProperty -Name Text -Value $text -Force
                 }
                 Catch {
-                    Write-Host $PSItem.Exception.Message       
+                    Write-Host "Get-MKVS-FileText error:" + $PSItem.Exception.Message
                 }    
             }
             $cur | Add-Member -MemberType NoteProperty -Name Hash -Value $hash -Force
         }
         
         $cur | Add-Member -MemberType NoteProperty -Name ACL -Value $acl -Force
-
-        $cur | ConvertTo-Json | Out-File -FilePath $outfile -Encoding UTF8 -Append
+        Try
+        {
+            $cur | ConvertTo-Json | Out-File -FilePath $outfile -Encoding UTF8 -Append
+        }
+        Catch {
+            Write-Host "ConvertTo-Json error:" + $PSItem.Exception.Message
+        }
 }
 
 function inspectFolder($f) {
@@ -200,12 +205,25 @@ function inspectFolder($f) {
     if ($start -ne "") {
         Write-Host "start: " $start
         $starttime = [datetime]::ParseExact($start,'yyyyMMddHHmmss', $null)
+
         Get-ChildItem $f -Recurse | ? { $_.LastWriteTime -gt $starttime } | Foreach-Object {
-            inspectFile $_
+            Try
+            {
+                inspectFile $_
+            }
+            Catch {
+                Write-Host "inspectFile error:" + $PSItem.Exception.Message
+            }
         }
     } else {
         Get-ChildItem $f -Recurse | Foreach-Object {
-            inspectFile $_
+            Try
+            {
+                inspectFile $_
+            }
+            Catch {
+                Write-Host "inspectFile error:" + $PSItem.Exception.Message
+            }
         }
     }
 }
