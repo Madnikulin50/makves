@@ -17,6 +17,8 @@
 | export-events             | Экспорт информации о событиях из Windows EventLog                 |
 | export-mb-folders         | Экспорт почтовых ящиков из Exchange                               |
 | explore-folder            | Сбор информации о файлах                                                |
+| folder-evtx-monitor            | Агент мониторинга за Windows Event Log                                                |
+| user-agent            | Агент мониторинга действий пользователя                                                |
 
 
 [DEV] -Находятся в процессе разработки
