@@ -18,6 +18,7 @@
 | export-mb-folders         | Экспорт почтовых ящиков из Exchange                               |
 | explore-folder            | Сбор информации о файлах                                                |
 | folder-evtx-monitor            | Агент мониторинга за Windows Event Log                                                |
+| folder-monitor            | Агент мониторинга за папкой файловой системы                                                |
 | user-agent            | Агент мониторинга действий пользователя                                                |
 
 
