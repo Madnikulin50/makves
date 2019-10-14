@@ -1,8 +1,10 @@
 param (
-    [string]$folder = "C:\Windows\System32\winevt\Logs",
+    [Parameter(Mandatory = $False, Position = 1, ParameterSetName = "NormalRun")] [string]$folder = "C:\Windows\System32\winevt\Logs",
     [string]$url = "http://10.0.0.10:8000",
     [string]$user = "admin",
-    [string]$pwd = "admin"
+    [string]$pwd = "admin",
+    [Parameter(Mandatory = $False, Position = 10, ParameterSetName = "NormalRun")] [ValidateSet("Security","Application","System","All")] [array]$target="Security"
+
  )
 
 $uri = $url + "/data/upload"
@@ -13,11 +15,34 @@ $base64 = [System.Convert]::ToBase64String($bytes)
 
 $basicAuthValue = "Basic $base64"
 
-$headers = @{ Authorization = $basicAuthValue }
+$headers = @{ Authorization = $basicAuthValue 
+"X-Forwarder" = "evtx-forwarder"}
 Add-Type -AssemblyName 'System.Net.Http'
+
+function isMyFileName($entry) {
+	$filepath = Get-ChildItem $entry
+	$fn = $filepath.BaseName
+	Foreach ($i in $target) {
+	    if ($i -eq "All") {
+			return $True
+		}
+		
+		if ($i -eq $fn) {
+			return $True
+		}
+		
+	}
+	return $False
+}
+
 function inspectFile($entry) {
     Try
     {
+		$isMy = isMyFileName($entry)
+		if ($isMy -eq $false) {
+			return
+		}
+
         $tempFile = $entry + "copy"
         Copy-Item $entry $tempFile
         Try
@@ -38,7 +63,7 @@ function inspectFile($entry) {
                 "--$boundary--$LF"
             ) -join $LF
 
-            Invoke-RestMethod -Uri $uri -Method Post -ContentType "multipart/form-data; boundary=`"$boundary`"" -Body $bodyLines
+            Invoke-RestMethod -Uri $uri -Method Post -ContentType "multipart/form-data; boundary=`"$boundary`"" -Body $bodyLines -Headers $headers
         }
         Catch {
             Write-Host "send file error:" + $PSItem.Exception.Message
@@ -62,7 +87,7 @@ $name = $Event.SourceEventArgs.Name
 $changeType = $Event.SourceEventArgs.ChangeType 
 $timeStamp = $Event.TimeGenerated 
 Write-Host "The file '$name' was $changeType at $timeStamp" -fore green 
-inspectFile $name
+inspectFile $folder + "\\" + $name
 } 
  
 Register-ObjectEvent $fsw Deleted -SourceIdentifier FileDeleted -Action { 
@@ -77,7 +102,7 @@ $name = $Event.SourceEventArgs.Name
 $changeType = $Event.SourceEventArgs.ChangeType 
 $timeStamp = $Event.TimeGenerated 
 Write-Host "The file '$name' was $changeType at $timeStamp" -fore white 
-inspectFile $name } 
+inspectFile $folder + "\\" + $name } 
 
 
 Get-ChildItem $folder -Recurse | Foreach-Object {
