@@ -1,11 +1,11 @@
 param (
     [string]$folder = "C:\work\",
-    [string]$url = "http://10.0.0.10:8000",
+    [string]$url = "http://localhost:8000",
     [string]$user = "admin",
     [string]$pwd = "admin"
  )
 
-$uri = $url + "/data/upload/file"
+$uri = $url + "/data/upload/file-info"
 $pair = "${user}:${pwd}"
 
 $bytes = [System.Text.Encoding]::ASCII.GetBytes($pair)
@@ -13,7 +13,8 @@ $base64 = [System.Convert]::ToBase64String($bytes)
 
 $basicAuthValue = "Basic $base64"
 
-$headers = @{ Authorization = $basicAuthValue }
+$headers = @{ Authorization = $basicAuthValue}
+
 Add-Type -AssemblyName 'System.Net.Http'
 
 
@@ -138,9 +139,15 @@ function Get-MKVS-FileText([String] $FileName, [String] $Extension) {
     return ""    
 }
 
-function inspectFile($cur) {
-    $cur = $cur | Select-Object -Property "Name", "FullName", "BaseName", "CreationTime", "LastAccessTime", "LastWriteTime", "Attributes", "PSIsContainer", "Extension", "Mode", "Length"
-    Write-Host $cur.FullName
+function inspectFile($fullpath) {
+    Write-Host $fullpath
+    Try
+    {
+        $cur =  Get-ChildItem $fullpath
+
+        $cur = $cur | Select-Object -Property "Name", "FullName", "BaseName", "CreationTime", "LastAccessTime", "LastWriteTime", "Attributes", "PSIsContainer", "Extension", "Mode", "Length"
+
+        
         $acl = Get-Acl $cur.FullName | Select-Object -Property "Owner", "Group", "AccessToString", "Sddl"
         $path = $cur.FullName
         $ext = $cur.Extension
@@ -183,9 +190,14 @@ function inspectFile($cur) {
         Catch {
             Write-Host "ConvertTo-Json error:" + $PSItem.Exception.Message
         }
+    }
+    Catch {
+        Write-Host $PSItem.Exception.Message
+    }
 }
 
 function store($data) {
+    $cur | Add-Member -MemberType NoteProperty -Name Forwarder -Value "folder-forwarder" -Force
     $JSON = $data | ConvertTo-Json
     $response = Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
 }
@@ -195,31 +207,34 @@ function store($data) {
 $filter = '*.*'  # You can enter a wildcard filter here. 
 
 
-$fsw = New-Object IO.FileSystemWatcher $folder, $filter -Property @{IncludeSubdirectories = $false;NotifyFilter = [IO.NotifyFilters]'FileName, LastWrite'} 
+$fsw = New-Object IO.FileSystemWatcher $folder, $filter -Property @{IncludeSubdirectories = $true; NotifyFilter = [IO.NotifyFilters]'FileName, LastWrite'} 
  
 # Here, all three events are registerd.  You need only subscribe to events that you need: 
  
 Register-ObjectEvent $fsw Created -SourceIdentifier FileCreated -Action { 
-$name = $Event.SourceEventArgs.Name 
-$changeType = $Event.SourceEventArgs.ChangeType 
-$timeStamp = $Event.TimeGenerated 
-Write-Host "The file '$name' was $changeType at $timeStamp" -fore green 
-inspectFile $name
+    $name = $Event.SourceEventArgs.Name 
+    $changeType = $Event.SourceEventArgs.ChangeType 
+    $timeStamp = $Event.TimeGenerated 
+    Write-Host "The file '$name' was $changeType at $timeStamp" -fore green 
+    $fullname = Join-Path -Path $folder -ChildPath $name
+    inspectFile $fullname
 } 
  
 Register-ObjectEvent $fsw Deleted -SourceIdentifier FileDeleted -Action { 
-$name = $Event.SourceEventArgs.Name 
-$changeType = $Event.SourceEventArgs.ChangeType 
-$timeStamp = $Event.TimeGenerated 
-Write-Host "The file '$name' was $changeType at $timeStamp" -fore red 
+    $name = $Event.SourceEventArgs.Name 
+    $changeType = $Event.SourceEventArgs.ChangeType 
+    $timeStamp = $Event.TimeGenerated 
+    Write-Host "The file '$name' was $changeType at $timeStamp" -fore red 
 } 
  
 Register-ObjectEvent $fsw Changed -SourceIdentifier FileChanged -Action { 
-$name = $Event.SourceEventArgs.Name 
-$changeType = $Event.SourceEventArgs.ChangeType 
-$timeStamp = $Event.TimeGenerated 
-Write-Host "The file '$name' was $changeType at $timeStamp" -fore white 
-inspectFile $name } 
+    $name = $Event.SourceEventArgs.Name 
+    $changeType = $Event.SourceEventArgs.ChangeType 
+    $timeStamp = $Event.TimeGenerated 
+    Write-Host "The file '$name' was $changeType at $timeStamp" -fore white
+    $fullname = Join-Path -Path $folder -ChildPath $name
+    inspectFile $fullname
+} 
 
 
 
