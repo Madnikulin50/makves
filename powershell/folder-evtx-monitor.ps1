@@ -83,26 +83,29 @@ $fsw = New-Object IO.FileSystemWatcher $folder, $filter -Property @{IncludeSubdi
 # Here, all three events are registerd.  You need only subscribe to events that you need: 
  
 Register-ObjectEvent $fsw Created -SourceIdentifier FileCreated -Action { 
-$name = $Event.SourceEventArgs.Name 
-$changeType = $Event.SourceEventArgs.ChangeType 
-$timeStamp = $Event.TimeGenerated 
-Write-Host "The file '$name' was $changeType at $timeStamp" -fore green 
-inspectFile $folder + "\\" + $name
+    $name = $Event.SourceEventArgs.Name
+    $changeType = $Event.SourceEventArgs.ChangeType
+    $timeStamp = $Event.TimeGenerated
+    Write-Host "The file '$name' was $changeType at $timeStamp" -fore green
+    $fullname = Join-Path -Path $folder -ChildPath $name
+    inspectFile $fullname
 } 
  
 Register-ObjectEvent $fsw Deleted -SourceIdentifier FileDeleted -Action { 
-$name = $Event.SourceEventArgs.Name 
-$changeType = $Event.SourceEventArgs.ChangeType 
-$timeStamp = $Event.TimeGenerated 
-Write-Host "The file '$name' was $changeType at $timeStamp" -fore red 
+    $name = $Event.SourceEventArgs.Name
+    $changeType = $Event.SourceEventArgs.ChangeType
+    $timeStamp = $Event.TimeGenerated
+    Write-Host "The file '$name' was $changeType at $timeStamp" -fore red
 } 
  
 Register-ObjectEvent $fsw Changed -SourceIdentifier FileChanged -Action { 
-$name = $Event.SourceEventArgs.Name 
-$changeType = $Event.SourceEventArgs.ChangeType 
-$timeStamp = $Event.TimeGenerated 
-Write-Host "The file '$name' was $changeType at $timeStamp" -fore white 
-inspectFile $folder + "\\" + $name } 
+    $name = $Event.SourceEventArgs.Name
+    $changeType = $Event.SourceEventArgs.ChangeType
+    $timeStamp = $Event.TimeGenerated
+    Write-Host "The file '$name' was $changeType at $timeStamp" -fore white
+    $fullname = Join-Path -Path $folder -ChildPath $name
+    inspectFile $fullname
+}
 
 
 Get-ChildItem $folder -Recurse | Foreach-Object {
