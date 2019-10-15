@@ -4,7 +4,7 @@ param (
     [string]$user = "admin",
     [string]$pwd = "admin"
  )
-
+## Init web server 
 $uri = $url + "/data/upload/file-info"
 $pair = "${user}:${pwd}"
 
