@@ -1,5 +1,7 @@
 param (
     [string]$folder = "C:\work\",
+    [switch]$no_hash = $false,
+    [switch]$extruct = $false,
     [string]$makves_url = "http://localhost:8000",
     [string]$makves_user = "admin",
     [string]$makves_pwd = "admin"
@@ -153,20 +155,23 @@ function inspectFile($fullpath) {
         $ext = $cur.Extension
         
         if ($cur.PSIsContainer -eq $false) {
-            Try
-            {
-                $hash = Get-MKVS-FileHash $path
-            }
-            Catch {
-                Write-Host $PSItem.Exception.Message
+            if ($no_hash -eq $false) {
                 Try
                 {
-                    $hash = Get-FileHash $path | Select-Object -Property "Hash"
+                    $hash = Get-MKVS-FileHash $path
                 }
                 Catch {
                     Write-Host $PSItem.Exception.Message
+                    Try
+                    {
+                        $hash = Get-FileHash $path | Select-Object -Property "Hash"
+                    }
+                    Catch {
+                        Write-Host $PSItem.Exception.Message
+                    }
                 }
             }
+           
 
             if ($extruct -eq $true)
             {

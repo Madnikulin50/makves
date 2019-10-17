@@ -1,14 +1,14 @@
 param (
     [Parameter(Mandatory = $False, Position = 1, ParameterSetName = "NormalRun")] [string]$folder = "C:\Windows\System32\winevt\Logs",
-    [string]$url = "http://10.0.0.10:8000",
-    [string]$user = "admin",
-    [string]$pwd = "admin",
+    [string]$makves_url = "http://10.0.0.10:8000",
+    [string]$makves_user = "admin",
+    [string]$makves_pwd = "admin",
     [Parameter(Mandatory = $False, Position = 10, ParameterSetName = "NormalRun")] [ValidateSet("Security","Application","System","All")] [array]$target="Security"
 
  )
 
-$uri = $url + "/data/upload"
-$pair = "${user}:${pwd}"
+$uri = $makves_url + "/data/upload"
+$pair = "${makves_user}:${makves_pwd}"
 
 $bytes = [System.Text.Encoding]::ASCII.GetBytes($pair)
 $base64 = [System.Convert]::ToBase64String($bytes)

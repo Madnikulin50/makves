@@ -4,7 +4,7 @@ param (
     [string]$base = "",
     [string]$server = "",
     [int]$hashlen = 1048576,
-    [switch]$force = $false,
+    [switch]$no_hash = $false,
     [switch]$extruct = $false,
     [string]$start = ""
  )
@@ -152,18 +152,20 @@ function inspectFile($cur) {
         $ext = $cur.Extension
         
         if ($cur.PSIsContainer -eq $false) {
-            Try
-            {
-                $hash = Get-MKVS-FileHash $path
-            }
-            Catch {
-                Write-Host $PSItem.Exception.Message
+            if ($no_hash -eq $false) {
                 Try
                 {
-                    $hash = Get-FileHash $path | Select-Object -Property "Hash"
+                    $hash = Get-MKVS-FileHash $path
                 }
                 Catch {
                     Write-Host $PSItem.Exception.Message
+                    Try
+                    {
+                        $hash = Get-FileHash $path | Select-Object -Property "Hash"
+                    }
+                    Catch {
+                        Write-Host $PSItem.Exception.Message
+                    }
                 }
             }
 

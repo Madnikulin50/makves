@@ -48,4 +48,5 @@ powershell.exe -ExecutionPolicy Bypass -Command "./explore-folder.ps1" -base DC=
 | pwd         | [Необязательный] Имя пользователя под которым производится запрос. Если не заданно, то выводится диалог с запросом |
 | outfilename | Имя файла результатов                                                        |
 | extruct     | Выделять ли текст из doc, docx, xls, xlsx                                    |
+| no_hash     | Не производить вычисление хэша файлов                                 |
 
