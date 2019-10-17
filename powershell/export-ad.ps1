@@ -5,9 +5,7 @@ param (
     [string]$user = "",
     [string]$pwd = "",
     [switch]$force = $false,
-    [string]$start = "",
-    [string]$webUrl = "",
-    [switch]$webSendByOne = $true
+    [string]$start = ""
  )
 
 Write-Host "base: " $base
@@ -255,8 +253,3 @@ Write-Host "users export finished to: " $outfile
 
 
 Write-Host "computers export finished to: " $outfile
-
-if ($webUrl -ne "") {
-  Write-Host "start send data to: " $webUrl
-  Invoke-RestMethod -Uri $webUrl -Method Post -InFile $outfile -UseDefaultCredentials
-}

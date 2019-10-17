@@ -1,12 +1,12 @@
 param (
     [string]$folder = "C:\work\",
-    [string]$url = "http://localhost:8000",
-    [string]$user = "admin",
-    [string]$pwd = "admin"
+    [string]$makves_url = "http://localhost:8000",
+    [string]$makves_user = "admin",
+    [string]$makves_pwd = "admin"
  )
 ## Init web server 
-$uri = $url + "/data/upload/file-info"
-$pair = "${user}:${pwd}"
+$uri = $makves_url + "/data/upload/file-info"
+$pair = "${makves_user}:${makves_pwd}"
 
 $bytes = [System.Text.Encoding]::ASCII.GetBytes($pair)
 $base64 = [System.Convert]::ToBase64String($bytes)
