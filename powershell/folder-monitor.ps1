@@ -5,7 +5,8 @@ param (
     [string]$makves_url = "http://localhost:8000",
     [string]$makves_user = "admin",
     [string]$makves_pwd = "admin"
- )
+)
+
 ## Init web server 
 $uri = $makves_url + "/data/upload/file-info"
 $pair = "${makves_user}:${makves_pwd}"
@@ -204,7 +205,7 @@ function inspectFile($fullpath) {
 function store($data) {
     $cur | Add-Member -MemberType NoteProperty -Name Forwarder -Value "folder-forwarder" -Force
     $JSON = $data | ConvertTo-Json
-    $response = Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+    Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
 }
 
 

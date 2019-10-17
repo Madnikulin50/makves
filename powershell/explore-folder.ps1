@@ -208,7 +208,7 @@ function inspectFolder($f) {
         Write-Host "start: " $start
         $starttime = [datetime]::ParseExact($start,'yyyyMMddHHmmss', $null)
 
-        Get-ChildItem $f -Recurse | ? { $_.LastWriteTime -gt $starttime } | Foreach-Object {
+        Get-ChildItem $f -Recurse | Where-Object { $_.LastWriteTime -gt $starttime } | Foreach-Object {
             Try
             {
                 inspectFile $_
@@ -237,7 +237,7 @@ if ($base -eq "" ) {
     Import-Module ActiveDirectory
     $GetAdminact = Get-Credential
     $computers = Get-ADComputer -Filter * -server $server -Credential $GetAdminact -searchbase $base | Select-Object "Name"    
-    $computers | ForEach {
+    $computers | ForEach-Object {
         $machine = $_.Name
         Write-Host "export shares from machine: " $machine
         net view $machine | Select-Object -Skip  7 | Select-Object -SkipLast 2|

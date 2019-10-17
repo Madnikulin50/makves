@@ -59,7 +59,7 @@ function Get-ADPrincipalGroupMembershipRecursive() {
 
       $tmpGrp = Get-ADObject -server $server  -Credential $GetAdminact $groupDsn -Properties * | Select-Object "Name", "cn", "distinguishedName", "objectSid", "DisplayName", "memberOf"
 
-      if( ($groups | where { $_.DistinguishedName -eq $groupDsn }).Count -eq 0 ) {
+      if( ($groups | Where-Object { $_.DistinguishedName -eq $groupDsn }).Count -eq 0 ) {
           $add = $tmpGrp 
           $groups +=  $tmpGrp           
           $groups = Get-ADPrincipalGroupMembershipRecursive $groupDsn $groups

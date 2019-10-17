@@ -35,8 +35,6 @@ powershell.exe -ExecutionPolicy Bypass -Command "./explore-folder.ps1" -base DC=
 
 ```
 
-
-
 Параметры:
 
 | Имя         | Назначение                                                                   |
