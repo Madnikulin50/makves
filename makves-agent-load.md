@@ -17,10 +17,10 @@ makves-agent.exe load_folder <folder> <output_file>
 
 ```
 
-Пример запуска без выделения текста из папки
+Пример запуска для указанной папки
 
 ```
-makves-agent.exe load_folder //<folder> <output_file>
+makves-agent.exe load_folder с:\work files.json
 ```
 
 Пример запуска без выделения текста из папки общего доступа
