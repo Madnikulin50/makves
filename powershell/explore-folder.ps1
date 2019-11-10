@@ -1,14 +1,14 @@
 param (
     [string]$folder = "C:\work\",
-    [string]$outfilename = "expolore-folder", ## "",
+    [string]$outfilename = "", ## "explore-folder", ## "",
     [string]$base = "",
     [string]$server = "",
     [int]$hashlen = 1048576,
     [switch]$no_hash = $false,
     [switch]$extruct = $false,
     [string]$start = "",
-    [string]$startfn = "", ##".file-monitor.time_mark",
-    [string]$makves_url = "", ##"http://10.0.0.10:8000",
+    [string]$startfn = ".file-monitor.time_mark",
+    [string]$makves_url = "http://10.0.0.10:8000",
     [string]$makves_user = "admin",
     [string]$makves_pwd = "admin"
 )
@@ -224,6 +224,7 @@ function inspectFile($cur) {
         }
         
         $cur | Add-Member -MemberType NoteProperty -Name ACL -Value $acl -Force
+        $cur | Add-Member -MemberType NoteProperty -Name Computer -Value $env:computername -Force
         Try
         {
             if ($outfile -ne "") {
@@ -256,6 +257,8 @@ function inspectFolder($f) {
     $acl = Get-Acl $cur.FullName | Select-Object -Property "Owner", "Group", "AccessToString", "Sddl"
     $cur | Add-Member -MemberType NoteProperty -Name ACL -Value $acl -Force
     $cur | Add-Member -MemberType NoteProperty -Name RootAudit -Value $true -Force
+    $cur | Add-Member -MemberType NoteProperty -Name Computer -Value $env:computername -Force
+  
     if ($outfile -ne "") {
         $cur | ConvertTo-Json | Out-File -FilePath $outfile -Encoding UTF8 -Append
     }
