@@ -5,12 +5,15 @@ param (
     [string]$user = "",
     [string]$pwd = "",
     [switch]$force = $false,
-    [string]$start = ""
+    [string]$start = "",
+    [string]$makves_url = "",##"http://10.0.0.10:8000",
+    [string]$makves_user = "admin",
+    [string]$makves_pwd = "admin"
  )
 
 Write-Host "base: " $base
 Write-Host "server: " $server
-Write-Host "outfile: " $outfile
+
 Write-Host "user: " $user
 Write-Host "pwd: " $pwd
 #Create a variable for the date stamp in the log file
@@ -20,13 +23,35 @@ $LogDate = get-date -f yyyyMMddhhmm
 Import-Module ActiveDirectory
 
 $SearchBase = $base 
-$outfile = "$($outfilename)_$LogDate.json"
 
-if (Test-Path $outfile) 
-{
-  Remove-Item $outfile
+## Init web server 
+$uri = $makves_url + "/data/upload/agent"
+$pair = "${makves_user}:${makves_pwd}"
+
+$bytes = [System.Text.Encoding]::ASCII.GetBytes($pair)
+$base64 = [System.Convert]::ToBase64String($bytes)
+
+$basicAuthValue = "Basic $base64"
+
+$headers = @{ Authorization = $basicAuthValue}
+
+if ($makves_url -eq "") {
+    $uri = ""
+    Add-Type -AssemblyName 'System.Net.Http'
 }
 
+
+$outfile = ""
+
+if ($outfilename -ne "") {
+    $outfile = "$($outfilename)_$LogDate.json"
+    if (Test-Path $outfile) 
+    {
+        Remove-Item $outfile
+    }
+}
+
+Write-Host "outfile: " $outfile
 
 if ($user -ne "") {
     $pass = ConvertTo-SecureString -AsPlainText $pwd -Force    
@@ -39,7 +64,15 @@ $domain = Get-ADDomain -server $server -Credential $GetAdminact
 
 Write-Host "domain: " $domain.NetBIOSName
 
-$domain | ConvertTo-Json | Out-File -FilePath $outfile -Encoding UTF8 -Append
+if ($outfile -ne "") {
+  $domain | ConvertTo-Json | Out-File -FilePath $outfile -Encoding UTF8 -Append
+}
+if ($uri -ne "") { 
+  $domain | Add-Member -MemberType NoteProperty -Name Forwarder -Value "ad-forwarder" -Force
+  $JSON = $domain | ConvertTo-Json
+  Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+}
+
 
 
 if ($start -ne "") {
@@ -179,7 +212,16 @@ Foreach-Object {
   $allGroups = ADPrincipalGroupMembershipRecursive $cur.DistinguishedName 
   $cur | Add-Member -MemberType NoteProperty -Name AllGroups -Value $allGroups -Force
 
-  $cur | ConvertTo-Json | Out-File -FilePath $outfile -Encoding UTF8 -Append
+  
+  if ($outfile -ne "") {
+    $cur | ConvertTo-Json | Out-File -FilePath $outfile -Encoding UTF8 -Append
+  }
+  if ($uri -ne "") { 
+    $cur | Add-Member -MemberType NoteProperty -Name Forwarder -Value "ad-forwarder" -Force
+    $JSON = $cur | ConvertTo-Json
+    Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+  }
+
 }
 
 
@@ -205,7 +247,15 @@ Get-ADGroup -server $server `
   $allGroups = ADPrincipalGroupMembershipRecursive $cur.DistinguishedName 
   $cur | Add-Member -MemberType NoteProperty -Name AllGroups -Value $allGroups -Force
 
-  $cur | ConvertTo-Json | Out-File -FilePath $outfile -Encoding UTF8 -Append
+  if ($outfile -ne "") {
+    $cur | ConvertTo-Json | Out-File -FilePath $outfile -Encoding UTF8 -Append
+  }
+  if ($uri -ne "") { 
+    $cur | Add-Member -MemberType NoteProperty -Name Forwarder -Value "ad-forwarder" -Force
+    $JSON = $cur | ConvertTo-Json
+    Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+  }
+
 }
 
 Write-Host "groups export finished to: " $outfile
@@ -240,7 +290,14 @@ Get-ADUser -server $server `
   $allGroups = ADPrincipalGroupMembershipRecursive $cur.DistinguishedName 
   $cur | Add-Member -MemberType NoteProperty -Name AllGroups -Value $allGroups -Force
 
-  $cur | ConvertTo-Json | Out-File -FilePath $outfile -Encoding UTF8 -Append
+  if ($outfile -ne "") {
+    $cur | ConvertTo-Json | Out-File -FilePath $outfile -Encoding UTF8 -Append
+  }
+  if ($uri -ne "") { 
+    $cur | Add-Member -MemberType NoteProperty -Name Forwarder -Value "ad-forwarder" -Force
+    $JSON = $cur | ConvertTo-Json
+    Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+  }
 }
 
 Write-Host "users export finished to: " $outfile

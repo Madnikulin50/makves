@@ -1,34 +1,74 @@
 param (
-    [string]$folder = "z:\test\Files_DB",
-    [string]$outfilename = "explore-folder",
+    [string]$folder = "C:\work\",
+    [string]$outfilename = "expolore-folder", ## "",
     [string]$base = "",
     [string]$server = "",
     [int]$hashlen = 1048576,
     [switch]$no_hash = $false,
     [switch]$extruct = $false,
-    [string]$start = ""
- )
+    [string]$start = "",
+    [string]$startfn = "", ##".file-monitor.time_mark",
+    [string]$makves_url = "", ##"http://10.0.0.10:8000",
+    [string]$makves_user = "admin",
+    [string]$makves_pwd = "admin"
+)
+
+## Init web server 
+$uri = $makves_url + "/data/upload/file-info"
+$pair = "${makves_user}:${makves_pwd}"
+
+$bytes = [System.Text.Encoding]::ASCII.GetBytes($pair)
+$base64 = [System.Convert]::ToBase64String($bytes)
+
+$basicAuthValue = "Basic $base64"
+
+$headers = @{ Authorization = $basicAuthValue}
+
+if ($makves_url -eq "") {
+    $uri = ""
+    Add-Type -AssemblyName 'System.Net.Http'
+}
+
+
  
+
+ $markTime = Get-Date -format "yyyyMMddHHmmss"
+
+ if ($startfn -ne "") {
+    Try
+    {
+        $start = Get-Content $fnstart
+    }
+    Catch {
+        Write-Host "Error read time mark:" + $PSItem.Exception.Message
+        $start = ""
+    }
+} 
 
 
 
 $LogDate = get-date -f yyyyMMddhhmm 
-$outfile = "$($outfilename)_$LogDate.json"
+$outfile = ""
+
+if ($outfilename -ne "") {
+    $outfile = "$($outfilename)_$LogDate.json"
+    if (Test-Path $outfile) 
+    {
+        Remove-Item $outfile
+    }
+}
 
 Write-Host "base: " $folder
 Write-Host "outfile: " $outfile
 
-if (Test-Path $outfile) 
-{
-  Remove-Item $outfile
-}
+
 
 Function Get-MKVS-FileHash([String] $FileName,$HashName = "SHA1") 
 {
     if ($hashlen -eq 0) {
         $FileStream = New-Object System.IO.FileStream($FileName,"Open", "Read") 
         $StringBuilder = New-Object System.Text.StringBuilder 
-        [System.Security.Cryptography.HashAlgorithm]::Create($HashName).ComputeHash($FileStream)|%{[Void]$StringBuilder.Append($_.ToString("x2"))} 
+        [System.Security.Cryptography.HashAlgorithm]::Create($HashName).ComputeHash($FileStream)| ForEach-Object {[Void]$StringBuilder.Append($_.ToString("x2"))} 
         $FileStream.Close() 
         $StringBuilder.ToString()
     } else {
@@ -186,7 +226,22 @@ function inspectFile($cur) {
         $cur | Add-Member -MemberType NoteProperty -Name ACL -Value $acl -Force
         Try
         {
-            $cur | ConvertTo-Json | Out-File -FilePath $outfile -Encoding UTF8 -Append
+            if ($outfile -ne "") {
+                $cur | ConvertTo-Json | Out-File -FilePath $outfile -Encoding UTF8 -Append
+            }
+           
+            if ($uri -ne "") {
+                $cur | Add-Member -MemberType NoteProperty -Name Forwarder -Value "folder-forwarder" -Force
+                $JSON = $cur | ConvertTo-Json
+                Try
+                {
+                    Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+                    Write-Host  "Send data to server:" + $cur.Name
+                }
+                Catch {
+                    Write-Host "Error send data to server:" + $PSItem.Exception.Message
+                }
+            }
         }
         Catch {
             Write-Host "ConvertTo-Json error:" + $PSItem.Exception.Message
@@ -201,7 +256,22 @@ function inspectFolder($f) {
     $acl = Get-Acl $cur.FullName | Select-Object -Property "Owner", "Group", "AccessToString", "Sddl"
     $cur | Add-Member -MemberType NoteProperty -Name ACL -Value $acl -Force
     $cur | Add-Member -MemberType NoteProperty -Name RootAudit -Value $true -Force
-    $cur | ConvertTo-Json | Out-File -FilePath $outfile -Encoding UTF8 -Append
+    if ($outfile -ne "") {
+        $cur | ConvertTo-Json | Out-File -FilePath $outfile -Encoding UTF8 -Append
+    }
+    
+    if ($uri -ne "") {
+        $cur | Add-Member -MemberType NoteProperty -Name Forwarder -Value "folder-forwarder" -Force
+        $JSON = $cur | ConvertTo-Json
+        Try
+        {
+            Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+            Write-Host  "Send data to server:" + $cur.Name
+        }
+        Catch {
+            Write-Host "Error send data to server:" + $PSItem.Exception.Message
+        }
+    }
 
     
     if ($start -ne "") {
@@ -248,4 +318,9 @@ if ($base -eq "" ) {
         }
     }
 
+}
+
+if ($startfn -ne "") {
+    $markTime | Out-File -FilePath $startfn -Encoding UTF8
+    Write-Host "Store new mark: " $markTime
 }

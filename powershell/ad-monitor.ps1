@@ -21,8 +21,9 @@ Write-Host "makves_url: " $makves_url
 Write-Host "makves_user: " $makves_user
 Write-Host "makves_pwd: " $makves_pwd
 
+
 ## Init web server 
-$uri = $urmakves_url + "/data/upload/agent"
+$uri = $urmakves_url + "/data/upload/ad"
 $pair = "${makves_user}:${makves_pwd}"
 
 $bytes = [System.Text.Encoding]::ASCII.GetBytes($pair)
@@ -115,14 +116,14 @@ function inspectComputers() {
      $ntname = "$($domain.NetBIOSName)\$($cur.sAMAccountName)"
      $cur | Add-Member -MemberType NoteProperty -Name NTName -Value $ntname -Force
      $licensies = Get-WmiObject SoftwareLicensingProduct -Credential $GetAdminact -ComputerName $cur.DNSHostName -ErrorAction SilentlyContinue | Select-Object Description, LicenseStatus
-     if ($licensies -ne $Null) {
+     if ($Null -ne $licensies) {
        Write-Host $cur.DNSHostName " : " $($licensies)
        $cur | Add-Member -MemberType NoteProperty -Name OperatingSystemLicensies -Value $licensies -Force
      }
    
      Try {
        $userprofiles = Get-WmiObject -Credential $GetAdminact -Class win32_userprofile -ComputerName $cur.DNSHostName -ErrorAction SilentlyContinue | Select-Object sid, localpath 
-       if ($userprofiles -ne $null) {
+       if ($null -ne $userprofiles) {
          Write-Host $cur.DNSHostName  " : " $userprofiles
          $cur | Add-Member -MemberType NoteProperty -Name UserProfiles -Value $userprofiles -Force
        }    
@@ -132,7 +133,7 @@ function inspectComputers() {
    
      Try {
        $apps = Get-WMIObject -Class win32_product -Credential $GetAdminact -ComputerName $cur.DNSHostName -ErrorAction SilentlyContinue | Select-Object Name, Version
-       if ($apps -ne $Null) {
+       if ($Null -ne $apps) {
          Write-Host $cur.DNSHostName " : " $apps
          $cur | Add-Member -MemberType NoteProperty -Name Applications -Value $apps -Force
        }
@@ -152,7 +153,7 @@ function inspectComputers() {
              $UninstallKeys = $Null;
              $SubKey = $Null;
              $UninstallKeys = $Registry.OpenSubKey("Software\Microsoft\Windows\CurrentVersion\Uninstall",$False);
-             $UninstallKeys.GetSubKeyNames()|%{
+             $UninstallKeys.GetSubKeyNames()| ForEach-Object {
                $SubKey = $UninstallKeys.OpenSubKey($_,$False);
                $DisplayName = $SubKey.GetValue("DisplayName");
                If ($DisplayName.Length -gt 0){
@@ -175,7 +176,7 @@ function inspectComputers() {
                        $SubKeyWow6432Node = $Null;
                        $UninstallKeysWow6432Node = $Registry.OpenSubKey("Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall",$False);
                            If ($UninstallKeysWow6432Node) {
-                               $UninstallKeysWow6432Node.GetSubKeyNames()|%{
+                               $UninstallKeysWow6432Node.GetSubKeyNames()| ForEach-Object {
                                $SubKeyWow6432Node = $UninstallKeysWow6432Node.OpenSubKey($_,$False);
                                $DisplayName = $SubKeyWow6432Node.GetValue("DisplayName");
                                If ($DisplayName.Length -gt 0){
@@ -264,7 +265,7 @@ function inspectUsers() {
 
         $ntname = "$($domain.NetBIOSName)\$($cur.sAMAccountName)"
 
-        if ($cur.thumbnailPhoto -ne $null) {
+        if ($null -ne $cur.thumbnailPhoto) {
             $cur.thumbnailPhoto =[Convert]::ToBase64String($cur.thumbnailPhoto)
         }
 

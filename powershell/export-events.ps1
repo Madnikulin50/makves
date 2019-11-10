@@ -10,7 +10,11 @@ Param(
     [Parameter(Mandatory = $False, Position = 7, ParameterSetName = "NormalRun")] $fwd = "",
     [Parameter(Mandatory = $False, Position = 7, ParameterSetName = "NormalRun")] $syslog = "",
     [Parameter(Mandatory = $False, Position = 7, ParameterSetName = "NormalRun")] $syslog_port = 514,
-    [Parameter(Mandatory = $False, Position = 10, ParameterSetName = "NormalRun")] [ValidateSet("All","Logon","Service","User","Computer", "Clean", "File", "MSSQL", "RAS", "USB", "Printer", "Sysmon", "TS")] [array]$target="All"
+    [Parameter(Mandatory = $False, Position = 10, ParameterSetName = "NormalRun")] [ValidateSet("All","Logon","Service","User","Computer", "Clean", "File", "MSSQL", "RAS", "USB", "Printer", "Sysmon", "TS")] [array]$target="All",
+    [string]$startfn = "", ##".event-monitor.time_mark",
+    [string]$makves_url = "", ##"http://10.0.0.10:8000",
+    [string]$makves_user = "admin",
+    [string]$makves_pwd = "admin"
 )
 
 
@@ -18,22 +22,58 @@ $EventLevel="All"
 $NumberOfLastEventsToGet = $Count
 $EventLogName = ("Security")
 
+## Init web server 
+$uri = $makves_url + "/data/upload/event"
+$pair = "${makves_user}:${makves_pwd}"
+
+$bytes = [System.Text.Encoding]::ASCII.GetBytes($pair)
+$base64 = [System.Convert]::ToBase64String($bytes)
+
+$basicAuthValue = "Basic $base64"
+
+$headers = @{ Authorization = $basicAuthValue}
+
+if ($makves_url -eq "") {
+    $uri = ""
+    Add-Type -AssemblyName 'System.Net.Http'
+}
+
+
+ 
+
+ $markTime = Get-Date -format "yyyyMMddHHmmss"
+
+ if ($startfn -ne "") {
+    Try
+    {
+        $start = Get-Content $fnstart
+    }
+    Catch {
+        Write-Host "Error read time mark:" + $PSItem.Exception.Message
+        $start = ""
+    }
+} 
+
+
 
 
 $LogDate = get-date -f yyyyMMddhhmm 
-$outfile = "$($outfilename)_$LogDate.json"
+$outfile = ""
+
+if ($outfilename -ne "") {
+    $outfile = "$($outfilename)_$LogDate.json"
+    if (Test-Path $outfile) 
+    {
+        Remove-Item $outfile
+    }
+}
 
 Write-Host "computers: " $computers
-Write-Host "outfilename: " $server
+Write-Host "outfile: " $outfile
 Write-Host "target: " $target
 Write-Host "EventSource: " $EventSource
 Write-Host "EventLevel: " $EventLevel
 Write-Host "EventLogName: " $EventLogName
-
-if (Test-Path $outfile) 
-{
-  Remove-Item $outfile
-}
 
 
 if ($user -ne "") {
@@ -49,9 +89,6 @@ $DebugPreference = "Continue"
 $ErrorActionPreference = "SilentlyContinue"
 
 $FilterHashProperties = $null
-$Answer = ""
-
-
 
 if ($syslog -ne "") {
     Write-Host "syslog: " $syslog
@@ -59,19 +96,33 @@ if ($syslog -ne "") {
    
 }
 
-function SendSyslog($event) {
-    try {
-        Send-SyslogMessage -Server $syslog -Message $event.Message -Severity "Informational" -Facility "logaudit" -Hostname $env:COMPUTERNAME -ApplicationName "EventLog" -MessageID $event.Id    
-        # -Timestamp $event.TimeGenerated
-    } catch {
-        Write-Host ($event | Co)
-        $msg = "Error send to syslog $PSItem.Exception.InnerExceptionMessage"
-        Write-Host $msg
+
+function store($data) {
+    if ($outname -ne "") {
+        $data | ConvertTo-Json | Out-File -FilePath $outfile -Encoding UTF8 -Append
+    }
+    if ($syslog -ne "") {
+        SendSyslog $data
+    }
+    if ($uri -ne "") {
+        $data | Add-Member -MemberType NoteProperty -Name Forwarder -Value "event-forwarder" -Force
+        $JSON = $data | ConvertTo-Json
+        Try
+        {
+            Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+            Write-Host "Send data to server:" + $data.Name
+        }
+        Catch {
+            Write-Host "Error send data to server:" +  $PSItem.Exception.Message
+        }
     }
 }
 
+
+
+
 function IsEmpty($Param){
-    If ($Param -eq "All" -or $Param -eq "" -or $Param -eq $Null -or $Param -eq 0) {
+    If ($Param -eq "All" -or $Param -eq "" -or $null -eq $Param -or $Param -eq 0) {
         Return $True
     } Else {
         Return $False
@@ -127,11 +178,8 @@ function ExportFor($eid, $ln, $type) {
                 } Catch {
                     Write-Host "error create xml" -ForegroundColor Red
                 }
-                
-                $cur | ConvertTo-Json | Out-File -FilePath $outfile -Encoding UTF8 -Append
-                if ($syslog -ne "") {
-                    SendSyslog($cur)
-                } 
+                store($cur)
+
             }
             Write-host "Found at least $($Events.count) events ! Here are the $NumberOfLastEventsToGet last ones"
                 
@@ -153,10 +201,7 @@ function ExportFor($eid, $ln, $type) {
                     }
                     
                     $cur | Add-Member -MemberType NoteProperty -Name XML -Value $xml -Force
-                    $cur | ConvertTo-Json | Out-File -FilePath $outfile -Encoding UTF8 -Append 
-                    if ($syslog -ne "") {
-                        SendSyslog($cur)
-                    } 
+                    store($cur)
                 }
                 
             }
@@ -223,6 +268,12 @@ Foreach ($i in $target)
     }
 }
 
-Write-host "I'm done. I exported the results to a file located on the same directory as the Script"
+Write-Host "Iteration done."
 
 Write-Host "The script took $($StopWatch.Elapsed.TotalSeconds) seconds to execute..."
+
+
+if ($startfn -ne "") {
+    $markTime | Out-File -FilePath $startfn -Encoding UTF8
+    Write-Host "Store new mark: " $markTime
+}

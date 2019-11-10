@@ -2,7 +2,7 @@ param (
     [string]$folder = "C:\work\",
     [switch]$no_hash = $false,
     [switch]$extruct = $false,
-    [string]$makves_url = "http://localhost:8000",
+    [string]$makves_url = "http://10.0.0.10:8000",
     [string]$makves_user = "admin",
     [string]$makves_pwd = "admin"
 )
@@ -26,7 +26,7 @@ Function Get-MKVS-FileHash([String] $FileName,$HashName = "SHA1")
     if ($hashlen -eq 0) {
         $FileStream = New-Object System.IO.FileStream($FileName,"Open", "Read") 
         $StringBuilder = New-Object System.Text.StringBuilder 
-        [System.Security.Cryptography.HashAlgorithm]::Create($HashName).ComputeHash($FileStream)|%{[Void]$StringBuilder.Append($_.ToString("x2"))} 
+        [System.Security.Cryptography.HashAlgorithm]::Create($HashName).ComputeHash($FileStream)| ForEach-Object { [Void]$StringBuilder.Append($_.ToString("x2"))} 
         $FileStream.Close() 
         $StringBuilder.ToString()
     } else {
@@ -203,9 +203,16 @@ function inspectFile($fullpath) {
 }
 
 function store($data) {
-    $cur | Add-Member -MemberType NoteProperty -Name Forwarder -Value "folder-forwarder" -Force
+    $data | Add-Member -MemberType NoteProperty -Name Forwarder -Value "folder-forwarder" -Force
     $JSON = $data | ConvertTo-Json
-    Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+    Try
+    {
+        Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+        Write-Host  "Send data to server:" + $data.Name
+    }
+    Catch {
+        Write-Host $PSItem.Exception.Message
+    }
 }
 
 

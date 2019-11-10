@@ -21,7 +21,7 @@ foreach-object {
     {
         $cur = $_
         $fstat = Get-MailboxFolderStatistics -Identity $cur.alias
-        $s = Get-MailboxStatistics -Identity $cur.alias | Select DisplayName, LastLogonTime, ItemCount, LastLogoffTime, LegacyDN, LastLoggedOnUserAccount, ObjectClass
+        $s = Get-MailboxStatistics -Identity $cur.alias | Select-Object DisplayName, LastLogonTime, ItemCount, LastLogoffTime, LegacyDN, LastLoggedOnUserAccount, ObjectClass
         $s | ForEach-Object {
             $cs = $_ | ConvertTo-Json
             Write-Host "Statistic: " $cs
@@ -41,7 +41,7 @@ foreach-object {
             Write-Host $msg -ForegroundColor Red
         }
 
-        $p = Get-MailboxPermission -Identity ($cur.alias) | Select Identity, User, AccessRights
+        $p = Get-MailboxPermission -Identity ($cur.alias) | Select-Object Identity, User, AccessRights
         if ($p -ne $null) {
 
           [string]$t = "["
@@ -59,7 +59,7 @@ foreach-object {
         }
 
 
-        $p = Get-MailboxFolderPermission -Identity ($cur.alias + ":\") -ErrorAction SilentlyContinue | Select Identity, FolderName, User, AccessRights
+        $p = Get-MailboxFolderPermission -Identity ($cur.alias + ":\") -ErrorAction SilentlyContinue | Select-Object Identity, FolderName, User, AccessRights
         if ($p -ne $null) {
 
           [string]$t = "["

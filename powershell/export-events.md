@@ -1,23 +1,25 @@
-## Сбор событий EventLog c удаленных рабочих станций
+# Сбор событий EventLog c удаленных рабочих станций
 
-### Требования для использования
+## Требования для использования
+
 + Операционная система Windows 7+, Windows 2012+. Рекомендуемая Windows 10x64.1803+, Windows 2019x64
 + Windows PowerShell 5+, Рекомендуется Windows PowerShell 5.1
 + Remote Server Administration Tools for Windows 10 (или другой для соответвующей версии ОС)
 + Права на чтение удаленного EventLog [Дополнительно](https://support.microsoft.com/ru-ru/help/323076/how-to-set-event-log-security-locally-or-by-using-group-policy)
 
-### Запуск
+## Запуск
 
 Сбор всех типов событий с компьютера dc.acme.local
+
 ```
 powershell.exe -ExecutionPolicy Bypass -Command "./export-events.ps1" -Computers dc.acme.local
 ```
 
 Сбор всех типов событий (Logon/Logon) с компьютера dc.acme.local -Target Logon
+
 ```
 powershell.exe -ExecutionPolicy Bypass -Command "./export-events.ps1" -Computers dc.acme.local
 ```
-
 
 Параметры:
 
@@ -30,9 +32,12 @@ powershell.exe -ExecutionPolicy Bypass -Command "./export-events.ps1" -Computers
 | pwd              | [Необязательный] Имя пользователя под которым производится запрос. Если не заданно, то выводится диалог с запросом |
 | fwd              | [Необязательный] Имя журнала использованоого при форвардинге                                                     |
 | start            | [Необязательный] Врема начиная с которого отбирать события. Формат:yyyyMMddHHmmss                                |
+| makves_url  | [Необязательный] URL-адрес сервера Makves. Например: http://192.168.0.77:8000          |
+| makves_user | [Необязательный] Имя пользователя Makves под которым данные отправляются на сервер     |
+| makves_pwd  | [Необязательный] Пароль пользователя Ьфлмуы под которым данные отправляются на сервер  |
+| start  | [Необязательный] Метка времени для измения файлов в формате "yyyyMMddHHmmss"       |
+| startfn | [Необязательный] Имя файла для метки времени |
 | count            | [По-умолчанию: 3000] количество выбираемых событий                                                               |
-
-
 
 Типы событий:
 
@@ -52,7 +57,6 @@ powershell.exe -ExecutionPolicy Bypass -Command "./export-events.ps1" -Computers
 | TS               | События работы TerminalServices                                                                                  |
 
 После запуска будет выведено окно логина на компьютер, нужно ввести логин-пароль пользователя имеющего право читать журналы событий
-
 
 ### Настройка журналирования файловых операций
 
