@@ -105,7 +105,7 @@ function Get-ADPrincipalGroupMembershipRecursive() {
 Get-ADComputer -Filter * -Properties * -server $server  -Credential $GetAdminact -searchbase $SearchBase |
  Select-Object "Name", "dn", "sn", "cn", "distinguishedName", "whenCreated", "whenChanged", "memberOf", "badPwdCount", "objectSid", "DisplayName", 
 "sAMAccountName", "IPv4Address", "IPv6Address", "OperatingSystem", "OperatingSystemHotfix", "OperatingSystemServicePack", "OperatingSystemVersion",
-"PrimaryGroup", "ManagedBy", "userAccountControl", "Enabled", "lastlogondate", "ObjectClass", "DNSHostName", "ObjectCategory", "LastBadPasswordAttempt" |
+"PrimaryGroup", "ManagedBy", "userAccountControl", "Enabled", "lastlogondate", "ObjectClass", "DNSHostName", "ObjectCategory", "LastBadPasswordAttempt", "UserPrincipalName", "ServicePrincipalName" |
 Foreach-Object {
   $cur = $_
   if ($start -ne "") {
@@ -231,7 +231,7 @@ Get-ADGroup -server $server `
 "whenCreated", "whenChanged", "memberOf", "objectSid", "DisplayName", 
 "sAMAccountName", "StreetAddress", "City", "state", "PostalCode", "Country", "Title",
 "Company", "Description", "Department", "OfficeName", "telephoneNumber", "thumbnailPhoto",
-"Mail", "userAccountControl", "Manager", "ObjectClass", "logonCount", "UserPrincipalName"| Foreach-Object {
+"Mail", "userAccountControl", "Manager", "ObjectClass", "logonCount",  "UserPrincipalName", "ServicePrincipalName" | Foreach-Object {
   $cur = $_ 
   if ($start -ne "") {
     if ($cur.whenChanged -lt $starttime) {
@@ -268,7 +268,7 @@ Get-ADUser -server $server `
 "Company", "Description", "Department", "OfficeName", "telephoneNumber", "thumbnailPhoto",
 "Mail", "userAccountControl", "PasswordNeverExpires", "PasswordExpired", "DoesNotRequirePreAuth",
 "CannotChangePassword", "PasswordNotRequired", "TrustedForDelegation", "TrustedToAuthForDelegation",
-"Manager", "Enabled", "lastlogondate", "ObjectClass", "logonCount", "LogonHours", "UserPrincipalName" | Foreach-Object {
+"Manager", "Enabled", "lastlogondate", "ObjectClass", "logonCount", "LogonHours", "UserPrincipalName", "ServicePrincipalName" | Foreach-Object {
   $cur = $_  
   if ($start -ne "") {
     if (($cur.whenChanged -lt $starttime) -and ($cur.lastlogondate -lt $starttime)){
