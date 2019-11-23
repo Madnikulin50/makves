@@ -8,7 +8,7 @@ param (
     [switch]$extruct = $false,
     [string]$start = "",
     [string]$startfn = ".file-monitor.time_mark",
-    [string]$makves_url = "http://10.0.0.10:8000",
+    [string]$makves_url = "", ##"http://10.0.0.10:8000",
     [string]$makves_user = "admin",
     [string]$makves_pwd = "admin"
 )
