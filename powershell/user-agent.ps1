@@ -8,7 +8,7 @@ Param(
 
 Add-Type -AssemblyName System.Windows.Forms,System.Drawing
 
-$uri = $url + "/data/upload/agent"
+$uri = $url + "/data/upload/activity"
 $pair = "${user}:${pwd}"
 
 $bytes = [System.Text.Encoding]::ASCII.GetBytes($pair)
