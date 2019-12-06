@@ -76,7 +76,7 @@
 
 ### Загрузка объектов компьютерной инфраструктуры
  
- В MVP-версии для загрузки данных используются файлы созданные скриптами:
+ Для загрузки данных используются файлы созданные скриптами:
   
   + [export-ad.ps1](https://github.com/Madnikulin50/makves-mvp/blob/master/export-ad.ps1 "Переход по ссылке")  - Экспорт данных о пользователях, группах и компьютерах из AD.  [Документация](https://github.com/Madnikulin50/makves-mvp/blob/master/export-ad.md "Описание").
   + [explore-folder.ps1](https://github.com/Madnikulin50/makves-mvp/blob/master/explore-folder.ps1 "Переход по ссылке") - Экспорт данных о папках и файлах. [Документация](https://github.com/Madnikulin50/makves-mvp/blob/master/explore-folder.md "Описание").
