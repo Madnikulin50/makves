@@ -1,5 +1,5 @@
 param (
-    [string]$folder = "C:\work\makves\makves\doc",
+    [string]$folder = "./",
     [string]$outfilename =  "explore-folder", ## "",
     [string]$base = "",
     [string]$server = "",
