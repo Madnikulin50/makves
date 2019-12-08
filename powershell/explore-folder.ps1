@@ -1,13 +1,14 @@
 param (
-    [string]$folder = "C:\work\",
-    [string]$outfilename = "", ## "explore-folder", ## "",
+    [string]$folder = "C:\work\makves\makves\doc",
+    [string]$outfilename =  "explore-folder", ## "",
     [string]$base = "",
     [string]$server = "",
     [int]$hashlen = 1048576,
     [switch]$no_hash = $false,
     [switch]$extruct = $false,
+    [switch]$compliance = $false,
     [string]$start = "",
-    [string]$startfn = ".file-monitor.time_mark",
+    [string]$startfn = "", ##".file-monitor.time_mark",
     [string]$makves_url = "", ##"http://10.0.0.10:8000",
     [string]$makves_user = "admin",
     [string]$makves_pwd = "admin"
@@ -27,6 +28,11 @@ $headers = @{ Authorization = $basicAuthValue}
 if ($makves_url -eq "") {
     $uri = ""
     Add-Type -AssemblyName 'System.Net.Http'
+}
+
+
+if ($compliance -eq $true) {
+    Import-Module "./compliance.dll" -Verbose
 }
 
 
@@ -220,6 +226,19 @@ function inspectFile($cur) {
                     Write-Host "Get-MKVS-FileText error:" + $PSItem.Exception.Message
                 }    
             }
+
+            if ($compliance -eq $true)
+            {
+                Try
+                {
+                    $compliance =  Get-Compliance -File $path
+                    $cur | Add-Member -MemberType NoteProperty -Name Compliance -Value $compliance -Force
+                }
+                Catch {
+                    Write-Host "Get-Compliance error:" + $PSItem.Exception.Message
+                }
+            }
+
             $cur | Add-Member -MemberType NoteProperty -Name Hash -Value $hash -Force
         }
         
