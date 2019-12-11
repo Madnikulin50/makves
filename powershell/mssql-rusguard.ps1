@@ -1,9 +1,9 @@
 param (
     [string]$connection = 'server=localhost;user id=sa;password=Zse45rdx;',
-    [string]$outfilename = 'rusguard',
+    [string]$outfilename = '', ##'rusguard',
     [string]$start = "",
-    [string]$startfn = ".rusguard-monitor.time_mark",
-    [string]$makves_url = "", ##"http://10.0.0.10:8000",
+    [string]$startfn = "", ##".rusguard-monitor.time_mark",
+    [string]$makves_url = "http://127.0.0.1:8000",
     [string]$makves_user = "admin",
     [string]$makves_pwd = "admin"
  )
@@ -94,7 +94,9 @@ function store($data) {
         if ($uri -ne "") {
             Try
             {
-                Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+                $body = [System.Text.Encoding]::UTF8.GetBytes($JSON.ToString());
+
+                Invoke-WebRequest -Uri $uri -Method Post -Body $body -ContentType "application/json" -Headers $headers
                 Write-Host  "Send data to server:" + $cur.Name
             }
             Catch {
@@ -141,14 +143,14 @@ if ($resultsDataTable.Rows.Count -ne 0) {
             $action = "exit"
         }
 
-        $content = "Employee: " + $_.LastName + " " + $_.FirstName + " " + $_.SecondName + "\r\n "
-        $content += "Department: " + $_.DepartmentName + "\r\n"
-        $content += "Position: " + $_.Position + "\r\n"
-        $content += "TableNumber: " + $_.TableNumber + "\r\n"
+        $content = "Employee: " + $_.LastName + " " + $_.FirstName + " " + $_.SecondName + "`n"
+        $content += "Department: " + $_.DepartmentName + "`n"
+        $content += "Position: " + $_.Position + "`n"
+        $content += "TableNumber: " + $_.TableNumber + "`n"
 
         $data = @{
             time = $_.DateTime.ToString("dd.MM.yyyy HH:mm:ss")
-            type = "event"
+            type = "direct-event"
             category = "RusGuard"
             object_type = "employee"
             who = $_.LastName
