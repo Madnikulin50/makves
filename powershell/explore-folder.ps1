@@ -43,7 +43,7 @@ if ($compliance -eq $true) {
  if ($startfn -ne "") {
     Try
     {
-        $start = Get-Content $fnstart
+        $start = Get-Content $startfn
     }
     Catch {
         Write-Host "Error read time mark:" + $PSItem.Exception.Message

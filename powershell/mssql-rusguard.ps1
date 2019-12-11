@@ -1,14 +1,15 @@
 param (
-    [string]$connection = 'server=gamma;user id=sa;password=P@ssw0rd;',
+    [string]$connection = 'server=localhost;user id=sa;password=Zse45rdx;',
     [string]$outfilename = 'rusguard',
     [string]$start = "",
-    [string]$makves_url = "",##"http://10.0.0.10:8000",
+    [string]$startfn = ".rusguard-monitor.time_mark",
+    [string]$makves_url = "", ##"http://10.0.0.10:8000",
     [string]$makves_user = "admin",
     [string]$makves_pwd = "admin"
  )
 
-[string] $query= "SELECT DateTime, LogMessageSubType, DrvName, LastName, 
-FirstName, SecondName, TableName, DepartmentName, Position
+[string] $query= "SELECT DateTime, LogMessageSubType, [DrvName], LastName, 
+FirstName, SecondName, TableNumber, DepartmentName, Position
 FROM  [RusGuardDB].[dbo].[EmployeesNLMK]";
 
 
@@ -18,9 +19,6 @@ Write-Host "connection: " $connection
 
 $LogDate = get-date -f yyyyMMddhhmm
 
-Import-Module ActiveDirectory
-
-$SearchBase = $base 
 
 ## Init web server 
 $uri = $makves_url + "/data/upload/agent"
@@ -38,6 +36,18 @@ if ($makves_url -eq "") {
     Add-Type -AssemblyName 'System.Net.Http'
 }
 
+$markTime = Get-Date -format "yyyyMMddHHmmss"
+
+if ($startfn -ne "") {
+    Try
+    {
+        $start = Get-Content $startfn
+    }
+    Catch {
+        Write-Host "Error read time mark:" + $PSItem.Exception.Message
+        $start = ""
+    }
+}
 
 $outfile = ""
 
@@ -72,52 +82,86 @@ function ExecuteSqlQuery ($connectionString, $query) {
 
 
 function store($data) {
-    $data | Add-Member -MemberType NoteProperty -Name Forwarder -Value "event-forwarder" -Force
+
+    $data | Add-Member -MemberType NoteProperty -Name Forwarder -Value "event-direct" -Force
     $JSON = $data | ConvertTo-Json
     Try
     {
-        Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
-        Write-Host  "Send data to server:" + $data.Name
+        if ($outfile -ne "") {
+            $JSON | Out-File -FilePath $outfile -Encoding UTF8 -Append
+        }
+       
+        if ($uri -ne "") {
+            Try
+            {
+                Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+                Write-Host  "Send data to server:" + $cur.Name
+            }
+            Catch {
+                Write-Host "Error send data to server:" + $PSItem.Exception.Message
+            }
+        }
     }
     Catch {
         Write-Host $PSItem.Exception.Message
     }
 }
 
-$global:ErrorlastTime = ""
 
-while ($true)
-{
-    Start-Sleep -Milliseconds 1000
-	if ($Host.UI.RawUI.KeyAvailable -and (3 -eq [int]$Host.UI.RawUI.ReadKey("AllowCtrlC,IncludeKeyUp,NoEcho").Character))
-    {
-        Write-Host "You pressed CTRL-C. Do you want to continue doing this and that?" 
-        $key = $Host.UI.RawUI.ReadKey("NoEcho, IncludeKeyDown")
-        if ($key.Character -eq "N") { break; }
-	}
-	$resultsDataTable = New-Object System.Data.DataTable
-	$q = $query
-	if ($global:lastTime -ne "") {
-		$q += " where [DataTime] > '" + $global:lastTime + "'"
-	}
 
-	$q += " order by [DataTime] DESC";
+$resultsDataTable = New-Object System.Data.DataTable
+$q = $query
+if ($start -ne "") {
+    $starttime = [datetime]::ParseExact($start,'yyyyMMddHHmmss', $null)
+    $q += " where [DateTime] > '" + $starttime.ToString("yyyy-MM-dd HH:mm:ss") + "'"
+}
 
-	Write-Host $q
+$q += " order by [DateTime] ASC";
 
-	$resultsDataTable = ExecuteSqlQuery $connection $q
+Write-Host $q
 
-	if ($resultsDataTable.Rows.Count -ne 0) {
-		Write-Host ("The table contains: " + $resultsDataTable.Rows.Count + " rows")
-		$res = $resultsDataTable | Select-Object @{L='time'; E ={$_.ItemArray[0]}}, @{L='login'; E ={$_.ItemArray[1]}}, @{L='query'; E ={$_.ItemArray[2]}}, @{L='program'; E ={$_.ItemArray[3]}}, @{L='host'; E ={$_.ItemArray[4]}}
-		$global:lastTime = $res[0].time
-		$data = @{ 
-			data = $res
-			type = "event"
-			user = $currentUser
-			computer = $currentComputer
-			time = Get-Date -Format "dd.MM.yyyy HH:mm:ss"}	
-		store($data)
-	}
-	
+$resultsDataTable = ExecuteSqlQuery $connection $q
+
+
+if ($resultsDataTable.Rows.Count -ne 0) {
+
+    Write-Host ("The table contains: " + $resultsDataTable.Rows.Count + " rows")
+
+    $resultsDataTable | Select-Object @{L='DateTime'; E ={$_.ItemArray[0]}},
+    @{L='LogMessageSubType'; E ={$_.ItemArray[1]}},
+    @{L='DrvName'; E ={$_.ItemArray[2]}},
+    @{L='LastName'; E ={$_.ItemArray[3]}},
+    @{L='FirstName'; E ={$_.ItemArray[4]}},
+    @{L='SecondName'; E ={$_.ItemArray[5]}},
+    @{L='TableNumber'; E ={$_.ItemArray[6]}},
+    @{L='DepartmentName'; E ={$_.ItemArray[7]}},
+    @{L='Position'; E ={$_.ItemArray[8]}} | Foreach-Object {
+        $action = "entry"
+        if ($_.LogMessageSubType -eq 67) {
+            $action = "exit"
+        }
+
+        $content = "Employee: " + $_.LastName + " " + $_.FirstName + " " + $_.SecondName + "\r\n "
+        $content += "Department: " + $_.DepartmentName + "\r\n"
+        $content += "Position: " + $_.Position + "\r\n"
+        $content += "TableNumber: " + $_.TableNumber + "\r\n"
+
+        $data = @{
+            time = $_.DateTime.ToString("dd.MM.yyyy HH:mm:ss")
+            type = "event"
+            category = "RusGuard"
+            object_type = "employee"
+            who = $_.LastName
+            where = $_.DrvName
+            action = $action
+            contents = $content
+        }
+
+        store($data)
+    }
+}
+
+if ($startfn -ne "") {
+    $markTime | Out-File -FilePath $startfn -Encoding UTF8
+    Write-Host "Store new mark: " $markTime
 }
