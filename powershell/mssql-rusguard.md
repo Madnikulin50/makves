@@ -32,6 +32,6 @@ powershell.exe -ExecutionPolicy Bypass -Command "./mssql-rusguard.ps1" -makves_u
 | outfilename | Имя файла результатов                                                        |
 | makves_url  | URL-адрес сервера Makves. Например: http://192.168.0.77:8000          |
 | makves_user | Имя пользователя Makves под которым данные отправляются на сервер     |
-| makves_pwd  | Пароль пользователя Ьфлмуы под которым данные отправляются на сервер  |
+| makves_pwd  | Пароль пользователя Makves под которым данные отправляются на сервер  |
 | start  | Метка времени для измения файлов в формате "yyyyMMddHHmmss"       |
 | startfn | Имя файла для метки времени |
