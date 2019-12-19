@@ -300,13 +300,4 @@ Get-ADUser -server $server `
   }
 }
 
-Write-Host "users export finished to: " $outfile
-
-
-# | Select-Object "Name", "dn", "sn", "cn", "distinguishedName", "whenCreated", "whenChanged", "memberOf", "badPwdCount", "objectSid", "DisplayName", 
-#"sAMAccountName", "IPv4Address", "IPv6Address", "OperatingSystem", "OperatingSystemHotfix", "OperatingSystemServicePack", "OperatingSystemVersion",
-#"PrimaryGroup", "ManagedBy", "userAccountControl", "Enabled", "lastlogondate", "ObjectClass"
-
-
-
-Write-Host "computers export finished to: " $outfile
+Write-Host "Export finished..."
