@@ -1,12 +1,12 @@
 param (
-    [string]$folder = "c:\work\makves\makves",
+    [string]$folder = "g:\work",
     [string]$outfilename =  "explore-folder", ## "",
     [string]$base = "",
     [string]$server = "",
     [int]$hashlen = 1048576,
     [switch]$no_hash = $false,
     [switch]$extruct = $false,
-    [switch]$compliance = $true,
+    [switch]$compliance = $false,
     [string]$start = "",
     [string]$startfn = "", ##".file-monitor.time_mark",
     [string]$makves_url = "", ##"http://10.0.0.10:8000",
@@ -192,88 +192,111 @@ function Get-MKVS-FileText([String] $FileName, [String] $Extension) {
 
 function inspectFile($cur) {
     $cur = $cur | Select-Object -Property "Name", "FullName", "BaseName", "CreationTime", "LastAccessTime", "LastWriteTime", "Attributes", "PSIsContainer", "Extension", "Mode", "Length"
-    Write-Host $cur.FullName
-        $acl = Get-Acl $cur.FullName | Select-Object -Property "Owner", "Group", "AccessToString", "Sddl"
-        $path = $cur.FullName
-        $ext = $cur.Extension
+	Write-Host $cur.FullName
+	Try
+	{
+		$acl = Get-Acl $cur.FullName | Select-Object -Property "Owner", "Group", "AccessToString", "Sddl"
+	}
+	Catch {
+		Write-Host "Get-Acl error:" + $PSItem.Exception.Message
+	}
+    $path = $cur.FullName
+    $ext = $cur.Extension
         
-        if ($cur.PSIsContainer -eq $false) {
-            if ($no_hash -eq $false) {
-                Try
-                {
-                    $hash = Get-MKVS-FileHash $path
-                }
-                Catch {
-                    Write-Host $PSItem.Exception.Message
-                    Try
-                    {
-                        $hash = Get-FileHash $path | Select-Object -Property "Hash"
-                    }
-                    Catch {
-                        Write-Host $PSItem.Exception.Message
-                    }
-                }
-            }
-
-            if ($extruct -eq $true)
-            {
-                Try
-                {
-                    $text =  Get-MKVS-FileText $path $ext
-                    $cur | Add-Member -MemberType NoteProperty -Name Text -Value $text -Force
-                }
-                Catch {
-                    Write-Host "Get-MKVS-FileText error:" + $PSItem.Exception.Message
-                }    
-            }
-
-            if ($compliance -eq $true)
-            {
-                Try
-                {
-                    $compliance =  Get-Compliance -File $path
-                    $cur | Add-Member -MemberType NoteProperty -Name Compliance -Value $compliance -Force
-                }
-                Catch {
-                    Write-Host "Get-Compliance error:" + $PSItem.Exception.Message
-                }
-            }
-
-            $cur | Add-Member -MemberType NoteProperty -Name Hash -Value $hash -Force
-        }
-        
-        $cur | Add-Member -MemberType NoteProperty -Name ACL -Value $acl -Force
-        $cur | Add-Member -MemberType NoteProperty -Name Computer -Value $env:computername -Force
+    if ($cur.PSIsContainer -eq $false) {
+        if ($no_hash -eq $false) {
         Try
-        {
-            if ($outfile -ne "") {
-                $cur | ConvertTo-Json | Out-File -FilePath $outfile -Encoding UTF8 -Append
-            }
-           
-            if ($uri -ne "") {
-                $cur | Add-Member -MemberType NoteProperty -Name Forwarder -Value "folder-forwarder" -Force
-                $JSON = $cur | ConvertTo-Json
-                Try
-                {
-                    Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
-                    Write-Host  "Send data to server:" + $cur.Name
+           {
+			   $hash = Get-MKVS-FileHash $path
+			}
+			Catch {
+				Write-Host $PSItem.Exception.Message
+				Try
+				{
+                    $hash = Get-FileHash $path | Select-Object -Property "Hash"
                 }
                 Catch {
-                    Write-Host "Error send data to server:" + $PSItem.Exception.Message
+                        Write-Host $PSItem.Exception.Message
                 }
             }
         }
-        Catch {
-            Write-Host "ConvertTo-Json error:" + $PSItem.Exception.Message
+
+        if ($extruct -eq $true)
+        {
+            Try
+            {
+                $text =  Get-MKVS-FileText $path $ext
+                $cur | Add-Member -MemberType NoteProperty -Name Text -Value $text -Force
+            }
+            Catch {
+        	    Write-Host "Get-MKVS-FileText error:" + $PSItem.Exception.Message
+            }    
         }
+
+        if ($compliance -eq $true)
+        {
+            Try
+            {
+                $compliance =  Get-Compliance -File $path
+                $cur | Add-Member -MemberType NoteProperty -Name Compliance -Value $compliance -Force
+            }
+            Catch {
+				Write-Host "Get-Compliance error:" + $PSItem.Exception.Message
+            }
+        }
+
+        $cur | Add-Member -MemberType NoteProperty -Name Hash -Value $hash -Force
+    }
+        
+    $cur | Add-Member -MemberType NoteProperty -Name ACL -Value $acl -Force
+    $cur | Add-Member -MemberType NoteProperty -Name Computer -Value $env:computername -Force
+    Try
+    {
+		if ($outfile -ne "") {
+            $cur | ConvertTo-Json | Out-File -FilePath $outfile -Encoding UTF8 -Append
+        }
+           
+        if ($uri -ne "") {
+            $cur | Add-Member -MemberType NoteProperty -Name Forwarder -Value "folder-forwarder" -Force
+            $JSON = $cur | ConvertTo-Json
+            Try
+            {
+                Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+                Write-Host  "Send data to server:" + $cur.Name
+            }
+            Catch {
+                Write-Host "Error send data to server:" + $PSItem.Exception.Message
+            }
+        }
+    }
+    Catch {
+        Write-Host "Store error:" + $PSItem.Exception.Message
+    }
 }
 
 function inspectFolder($f) {
-    $cur  = Get-Item $f | 
-    Select-Object -Property "Name", "FullName", "BaseName", "CreationTime", "LastAccessTime", "LastWriteTime", "Attributes", "PSIsContainer", "Extension", "Mode", "Length"
+    Try
+    {
+        $cur  = Get-Item $f  
+    } Catch {
+        Write-Host "Error Get-Item:" + $f + ":" $PSItem.Exception.Message
+        return;
+    }
+
+    if ($cur -eq $null) {
+        return;
+    }
+
+    $cur  = $cur | Select-Object -Property "Name", "FullName", "BaseName", "CreationTime", "LastAccessTime", "LastWriteTime", "Attributes", "PSIsContainer", "Extension", "Mode", "Length"
     
     Write-Host $cur.FullName
-    $acl = Get-Acl $cur.FullName | Select-Object -Property "Owner", "Group", "AccessToString", "Sddl"
+    Try
+    {
+        $acl = Get-Acl $cur.FullName | Select-Object -Property "Owner", "Group", "AccessToString", "Sddl"  
+    } Catch {
+        Write-Host "Error Get-Acl:" + $f + ":" $PSItem.Exception.Message
+        return;
+    }
     $cur | Add-Member -MemberType NoteProperty -Name ACL -Value $acl -Force
     $cur | Add-Member -MemberType NoteProperty -Name RootAudit -Value $true -Force
     $cur | Add-Member -MemberType NoteProperty -Name Computer -Value $env:computername -Force
