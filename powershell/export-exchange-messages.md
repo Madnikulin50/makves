@@ -4,6 +4,9 @@
 
 + Exchange Management Shell
 + Microsoft Exchange Web Services Managed API https://www.microsoft.com/en-us/download/details.aspx?id=42951
++ Для работы режима compliance необходимо установить:
+  + Microsoft Office 2010 Filter Packs https://www.microsoft.com/en-ie/download/details.aspx?id=17062
+  + PDF iFilter 64 11.0.01 https://supportdownloads.adobe.com/detail.jsp?ftpID=5542
 
 ## Запуск
 
