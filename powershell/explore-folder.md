@@ -5,8 +5,11 @@
 + Операционная система Windows 7+, Windows 2012+. Рекомендуемая Windows 10x64.1803+, Windows 2019x64
 + Windows PowerShell 5+, Рекомендуется Windows PowerShell 5.1
 + Remote Server Administration Tools for Windows 10 (или другой для соответвующей версии ОС)
++ Для работы режима compliance необходимо установить:
+  + Microsoft Office 2010 Filter Packs https://www.microsoft.com/en-ie/download/details.aspx?id=17062
+  + PDF iFilter 64 11.0.01 https://supportdownloads.adobe.com/detail.jsp?ftpID=5542
 + Права на чтение файлов из инспектируемых файлов и папок
-+ + Права на чтение данных из ActiveDirectory (Read all user information) [Дополнительно](https://social.technet.microsoft.com/Forums/en-US/c8b5886a-f0f1-4e20-b083-d36521d4dec6/delegation-to-read-all-users-properties-in-the-domain?forum=winserverDS)
+  + Права на чтение данных из ActiveDirectory (Read all user information) [Дополнительно](https://social.technet.microsoft.com/Forums/en-US/c8b5886a-f0f1-4e20-b083-d36521d4dec6/delegation-to-read-all-users-properties-in-the-domain?forum=winserverDS)
 
 ## Запуск
 
