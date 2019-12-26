@@ -28,7 +28,7 @@ powershell.exe -ExecutionPolicy Bypass -Command "./mssql-rusguard.ps1" -makves_u
 
 | Имя         | Назначение                                                                   |
 |-------------|------------------------------------------------------------------------------|
-| connection  | Выделять ли текст из doc, docx, xls, xlsx                                    |
+| connection  | Строка соединения с базой данных. Например:server=localhost;user id=sa;password=pwd                                    |
 | outfilename | Имя файла результатов                                                        |
 | makves_url  | URL-адрес сервера Makves. Например: http://192.168.0.77:8000          |
 | makves_user | Имя пользователя Makves под которым данные отправляются на сервер     |

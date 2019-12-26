@@ -1,5 +1,5 @@
 param (
-    [string]$connection = 'server=localhost;user id=sa;password=Zse45rdx;',
+    [string]$connection = 'server=localhost;user id=sa;password=pwd;',
     [string]$outfilename = '', ##'rusguard',
     [string]$start = "",
     [string]$startfn = "", ##".rusguard-monitor.time_mark",
