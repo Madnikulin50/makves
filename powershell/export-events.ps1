@@ -109,7 +109,8 @@ function store($data) {
         $JSON = $data | ConvertTo-Json
         Try
         {
-            Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+            $body = [System.Text.Encoding]::UTF8.GetBytes($JSON.ToString());
+            Invoke-WebRequest -Uri $uri -Method Post -Body $body -ContentType "application/json" -Headers $headers
             Write-Host "Send data to server:" + $data.Name
         }
         Catch {

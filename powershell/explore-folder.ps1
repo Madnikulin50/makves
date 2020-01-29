@@ -1,6 +1,6 @@
 param (
     [string]$folder = "C:\work",
-    [string]$outfilename =  "explore-folder", ## "",
+    [string]$outfilename =  "",
     [string]$base = "",
     [string]$server = "",
     [int]$hashlen = 1048576,
@@ -9,7 +9,7 @@ param (
     [switch]$compliance = $true,
     [string]$start = "",
     [string]$startfn = "", ##".file-monitor.time_mark",
-    [string]$makves_url = "", ##"http://10.0.0.10:8000",
+    [string]$makves_url = "http://192.168.2.22:8000",
     [string]$makves_user = "admin",
     [string]$makves_pwd = "admin"
 )
@@ -261,7 +261,9 @@ function inspectFile($cur) {
             $JSON = $cur | ConvertTo-Json
             Try
             {
-                Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+                $body = [System.Text.Encoding]::UTF8.GetBytes($JSON.ToString());
+
+                Invoke-WebRequest -Uri $uri -Method Post -Body $body -ContentType "application/json" -Headers $headers
                 Write-Host  "Send data to server:" + $cur.Name
             }
             Catch {
@@ -310,7 +312,8 @@ function inspectFolder($f) {
         $JSON = $cur | ConvertTo-Json
         Try
         {
-            Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+            $body = [System.Text.Encoding]::UTF8.GetBytes($JSON.ToString());
+            Invoke-WebRequest -Uri $uri -Method Post -Body $body -ContentType "application/json" -Headers $headers
             Write-Host  "Send data to server:" + $cur.Name
         }
         Catch {

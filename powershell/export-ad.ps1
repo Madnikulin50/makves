@@ -70,7 +70,8 @@ if ($outfile -ne "") {
 if ($uri -ne "") { 
   $domain | Add-Member -MemberType NoteProperty -Name Forwarder -Value "ad-forwarder" -Force
   $JSON = $domain | ConvertTo-Json
-  Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+  $body = [System.Text.Encoding]::UTF8.GetBytes($JSON.ToString());
+  Invoke-WebRequest -Uri $uri -Method Post -Body $body -ContentType "application/json" -Headers $headers
 }
 
 
@@ -219,7 +220,8 @@ Foreach-Object {
   if ($uri -ne "") { 
     $cur | Add-Member -MemberType NoteProperty -Name Forwarder -Value "ad-forwarder" -Force
     $JSON = $cur | ConvertTo-Json
-    Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+    $body = [System.Text.Encoding]::UTF8.GetBytes($JSON.ToString());
+    Invoke-WebRequest -Uri $uri -Method Post -Body $body -ContentType "application/json" -Headers $headers
   }
 
 }
@@ -253,7 +255,8 @@ Get-ADGroup -server $server `
   if ($uri -ne "") { 
     $cur | Add-Member -MemberType NoteProperty -Name Forwarder -Value "ad-forwarder" -Force
     $JSON = $cur | ConvertTo-Json
-    Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+    $body = [System.Text.Encoding]::UTF8.GetBytes($JSON.ToString());
+    Invoke-WebRequest -Uri $uri -Method Post -Body $body -ContentType "application/json" -Headers $headers
   }
 
 }
@@ -296,7 +299,8 @@ Get-ADUser -server $server `
   if ($uri -ne "") { 
     $cur | Add-Member -MemberType NoteProperty -Name Forwarder -Value "ad-forwarder" -Force
     $JSON = $cur | ConvertTo-Json
-    Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+    $body = [System.Text.Encoding]::UTF8.GetBytes($JSON.ToString());
+    Invoke-WebRequest -Uri $uri -Method Post -Body $body -ContentType "application/json" -Headers $headers
   }
 }
 

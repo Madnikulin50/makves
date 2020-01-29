@@ -53,7 +53,8 @@ function store($item) {
     }
     $cur | Add-Member -MemberType NoteProperty -Name Forwarder -Value "message-tracks-forwarder" -Force
     $JSON = $data | ConvertTo-Json
-    $response = Invoke-WebRequest -Uri $uri -Method Post -Body $JSON -ContentType "application/json" -Headers $headers
+    $body = [System.Text.Encoding]::UTF8.GetBytes($JSON.ToString());
+    $response = Invoke-WebRequest -Uri $uri -Method Post -Body $body -ContentType "application/json" -Headers $headers
     return $response  
 }
 
