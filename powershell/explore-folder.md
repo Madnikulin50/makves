@@ -37,6 +37,15 @@ powershell.exe -ExecutionPolicy Bypass -Command "./explore-folder.ps1" -base DC=
 
 ```
 
+Пример запуска с проверкой текста на соответствие стандартам
+
+```
+
+powershell.exe -ExecutionPolicy Bypass -Command "./explore-folder.ps1" -folder "c:\\work\\test" -outfilename folder_test -compliance
+
+```
+
+
 Параметры:
 
 | Имя         | Назначение                                                                   |

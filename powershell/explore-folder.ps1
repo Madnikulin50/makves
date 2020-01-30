@@ -1,15 +1,15 @@
 param (
     [string]$folder = "C:\work",
-    [string]$outfilename =  "",
+    [string]$outfilename = "folder", ##"",
     [string]$base = "",
     [string]$server = "",
     [int]$hashlen = 1048576,
     [switch]$no_hash = $false,
     [switch]$extruct = $false,
-    [switch]$compliance = $true,
+    [switch]$compliance = $false,
     [string]$start = "",
     [string]$startfn = "", ##".file-monitor.time_mark",
-    [string]$makves_url = "http://192.168.2.22:8000",
+    [string]$makves_url =  "", ##"http://192.168.2.22:8000",
     [string]$makves_user = "admin",
     [string]$makves_pwd = "admin"
 )
